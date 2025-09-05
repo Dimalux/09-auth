@@ -8,7 +8,10 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMutation } from '@tanstack/react-query';
 
-import { clientApi } from '@/lib/clientApi';
+
+
+import { clientApi } from '@/lib/api/clientApi';
+
 
 import { SignUpData } from '@/types/user';
 import css from './SignUpPage.module.css';

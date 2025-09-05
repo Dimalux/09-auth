@@ -131,16 +131,39 @@
 
 
 
-
 // lib/api/clientApi.ts
+
+
 import axios from 'axios';
-import { Note, NewNote } from '../types/note';
-import { SignUpData, User } from '../types/user';
+import { Note, NewNote } from '@/types/note';
+
+
+
+import { SignUpData, User } from '@/types/user';
+
+
+
 import { api } from './api';
 
 export interface NotesResponse {
   notes: Note[];
   totalPages: number;
+}
+
+interface ApiError {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+}
+
+interface ProfileData {
+  // Додайте конкретні поля профілю, які очікуєте
+  id: string;
+  email: string;
+  username?: string;
+  // додайте інші поля за потребою
 }
 
 const NOTEHUB_BASE_URL = 'https://notehub-public.goit.study/api';
@@ -251,22 +274,25 @@ export const clientApi = {
   // Реєстрація нового користувача
   signUp: async (userData: SignUpData): Promise<User> => {
     try {
-      const response = await api.post('/auth/signup', userData);
+      const response = await api.post<User>('/auth/signup', userData);
       return response.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Помилка реєстрації:', error);
-      throw new Error(error.response?.data?.message || 'Помилка реєстрації');
+      
+      const apiError = error as ApiError;
+      throw new Error(apiError.response?.data?.message || 'Помилка реєстрації');
     }
   },
 
-  // Приклад виклику вашого API (не Notehub)
-  getUserProfile: async (): Promise<any> => {
-    const response = await api.get('/profile');
+  // Отримання профілю користувача
+  getUserProfile: async (): Promise<ProfileData> => {
+    const response = await api.get<ProfileData>('/profile');
     return response.data;
   },
 
-  updateUserProfile: async (data: any): Promise<any> => {
-    const response = await api.put('/profile', data);
+  // Оновлення профілю користувача
+  updateUserProfile: async (data: Partial<ProfileData>): Promise<ProfileData> => {
+    const response = await api.put<ProfileData>('/profile', data);
     return response.data;
   }
 };

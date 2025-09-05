@@ -78,7 +78,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { Note } from "@/types/note";
 import styles from "@/components/NoteList/NoteList.module.css";
-import { clientApi } from "@/lib/clientApi";
+
+import { clientApi } from "@/lib/api/clientApi";
 
 
 

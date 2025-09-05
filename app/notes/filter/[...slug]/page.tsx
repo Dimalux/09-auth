@@ -85,7 +85,10 @@
 
 // app/notes/filter/[...slug]/page.tsx
 
-import { serverApi } from "@/lib/serverApi"; // Змінено імпорт
+
+
+import { serverApi } from "@/lib/api/serverApi"; // Змінено імпорт
+
 
 import NotesClient from "@/app/notes/filter/[...slug]/Notes.client";
 import { QueryClient, dehydrate } from "@tanstack/react-query";

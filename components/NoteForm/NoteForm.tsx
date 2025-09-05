@@ -130,7 +130,11 @@
 
 import { useRouter } from 'next/navigation';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { clientApi } from '@/lib/clientApi'; // Змінено імпорт
+
+
+import { clientApi } from '@/lib/api/clientApi'; // Змінено імпорт
+
+
 
 import { toast } from 'react-hot-toast';
 import styles from './NoteForm.module.css';
