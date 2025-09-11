@@ -1,9 +1,11 @@
-// app/notes/filter/[...slug]/page.tsx
+//  app/(private routes)/notes/filter/[...slug]/page.tsx
 
 
 
-// import { fetchNotes } from "@/lib/api";
-// import NotesClient from "@/app/notes/filter/[...slug]/Notes.client";
+// import { serverApi } from "@/lib/api/serverApi"; // Змінено імпорт
+
+
+// import NotesClient from "@/app/(private routes)/notes/filter/[...slug]/Notes.client";
 // import { QueryClient, dehydrate } from "@tanstack/react-query";
 // import { HydrationBoundary } from "@tanstack/react-query";
 // import { Metadata } from "next";
@@ -66,7 +68,7 @@
 
 //   await queryClient.prefetchQuery({
 //     queryKey: ["notes", page, searchQuery, tagFilter],
-//     queryFn: () => fetchNotes(page, 12, searchQuery, tagFilter),
+//     queryFn: () => serverApi.fetchNotes(page, 12, searchQuery, tagFilter), // Використовуємо serverApi.fetchNotes
 //   });
 
 //   return (
@@ -82,15 +84,12 @@
 
 
 
-
-// app/notes/filter/[...slug]/page.tsx
-
-
-
-import { serverApi } from "@/lib/api/serverApi"; // Змінено імпорт
+// app/(private-routes)/notes/filter/[...slug]/page.tsx
+import { serverApi } from "@/lib/api/serverApi";
 
 
-import NotesClient from "@/app/notes/filter/[...slug]/Notes.client";
+import NotesClient from "@/app/(private routes)/notes/filter/[...slug]/Notes.client";
+
 import { QueryClient, dehydrate } from "@tanstack/react-query";
 import { HydrationBoundary } from "@tanstack/react-query";
 import { Metadata } from "next";
@@ -112,7 +111,7 @@ export async function generateMetadata({
   let title = "All Notes | NoteHub";
   let description = "Browse all your notes in NoteHub application.";
 
-  if (tagFilter) {
+  if (tagFilter && tagFilter !== "All") {
     title = `Notes filtered by: ${tagFilter} | NoteHub`;
     description = `Browse notes filtered by ${tagFilter} tag in NoteHub application.`;
   }
@@ -147,13 +146,13 @@ export default async function NotesPage({
 
   const page = parseInt(resolvedSearchParams.page || "1");
   const searchQuery = resolvedSearchParams.search || "";
-  const tagFilter = resolvedParams.slug?.[0];
+  const tagFilter = resolvedParams.slug?.[0] === "All" ? undefined : resolvedParams.slug?.[0];
 
   const queryClient = new QueryClient();
 
   await queryClient.prefetchQuery({
     queryKey: ["notes", page, searchQuery, tagFilter],
-    queryFn: () => serverApi.fetchNotes(page, 12, searchQuery, tagFilter), // Використовуємо serverApi.fetchNotes
+    queryFn: () => serverApi.fetchNotes(page, 12, searchQuery, tagFilter),
   });
 
   return (

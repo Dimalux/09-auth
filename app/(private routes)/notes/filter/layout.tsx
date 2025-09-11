@@ -1,6 +1,7 @@
-// app/notes/filter/layout.tsx
+//  app/(private routes)/notes/filter/layout.tsx
 
-import styles from "@/app/notes/filter/layout.module.css";
+import styles from "@/app/(private routes)/notes/filter/layout.module.css";
+
 
 interface LayoutProps {
   children: React.ReactNode;

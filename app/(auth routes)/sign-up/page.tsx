@@ -1,63 +1,59 @@
 // app/(auth routes)/sign-up/page.tsx
 
 
-
 'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useMutation } from '@tanstack/react-query';
-
-
-
-import { clientApi } from '@/lib/api/clientApi';
-
-
-import { SignUpData } from '@/types/user';
+import { signUp } from '@/lib/api/clientApi';
+import { useAuthStore } from '@/lib/store/authStore';
 import css from './SignUpPage.module.css';
 
-export default function SignUpPage() {
+const SignUp = () => {
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const [error, setError] = useState<string>('');
-
-  const signUpMutation = useMutation({
-    mutationFn: clientApi.signUp,
-    onSuccess: () => {
-      // Успішна реєстрація - редірект на профіль
-      router.push('/profile');
-    },
-    onError: (error: Error) => {
-      // Обробка помилок реєстрації
-      setError(error.message);
-    },
-  });
+  const { setUser } = useAuthStore();
 
   const handleSubmit = async (formData: FormData) => {
-    setError(''); // Очищаємо попередні помилки
+    setIsLoading(true);
+    setError('');
+    
+    try {
+      const email = formData.get('email') as string;
+      const password = formData.get('password') as string;
+      
+      if (!email || !password) {
+        setError('Будь ласка, заповніть всі поля');
+        setIsLoading(false);
+        return;
+      }
 
-    const userData: SignUpData = {
-      email: formData.get('email') as string,
-      password: formData.get('password') as string,
-    };
-
-    // Валідація даних
-    if (!userData.email || !userData.password) {
-      setError('Будь ласка, заповніть всі поля');
-      return;
+      if (password.length < 5) {
+        setError('Пароль повинен містити щонайменше 6 символів');
+        setIsLoading(false);
+        return;
+      }
+      
+      const user = await signUp({ email, password });
+      setUser(user);
+      router.push('/profile');
+    } catch (error: any) {
+      if (error.message.includes('409') || error.message.includes('вже існує')) {
+        setError('Користувач з такою email адресою вже існує. Спробуйте увійти.');
+      } else {
+        setError(error.message || 'Помилка реєстрації. Спробуйте ще раз.');
+      }
+      console.error('Registration error:', error);
+    } finally {
+      setIsLoading(false);
     }
-
-    if (userData.password.length < 6) {
-      setError('Пароль має містити щонайменше 6 символів');
-      return;
-    }
-
-    signUpMutation.mutate(userData);
   };
 
   return (
     <main className={css.mainContent}>
       <h1 className={css.formTitle}>Sign up</h1>
-      <form action={handleSubmit} className={css.form}>
+      <form className={css.form} action={handleSubmit}>
         <div className={css.formGroup}>
           <label htmlFor="email">Email</label>
           <input 
@@ -66,6 +62,7 @@ export default function SignUpPage() {
             name="email" 
             className={css.input} 
             required 
+            placeholder="Введіть ваш email"
           />
         </div>
 
@@ -77,6 +74,7 @@ export default function SignUpPage() {
             name="password" 
             className={css.input} 
             required 
+            placeholder="Введіть пароль (мінімум 6 символів)"
             minLength={6}
           />
         </div>
@@ -85,16 +83,29 @@ export default function SignUpPage() {
           <button 
             type="submit" 
             className={css.submitButton}
-            disabled={signUpMutation.isPending}
+            disabled={isLoading}
           >
-            {signUpMutation.isPending ? 'Реєстрація...' : 'Register'}
+            {isLoading ? 'Реєстрація...' : 'Зареєструватися'}
           </button>
         </div>
 
         {error && (
-          <p className={css.error}>{error}</p>
+          <div className={css.errorContainer}>
+            <p className={css.error}>{error}</p>
+            {error.includes('вже існує') && (
+              <button
+                type="button"
+                className={css.loginLink}
+                onClick={() => router.push('/sign-in')}
+              >
+                Перейти до входу
+              </button>
+            )}
+          </div>
         )}
       </form>
     </main>
   );
-}
+};
+
+export default SignUp;

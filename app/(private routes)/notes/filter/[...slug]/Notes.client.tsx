@@ -1,7 +1,5 @@
 // app/notes/filter/[...slug]/Notes.client.tsx
 
-
-
 // "use client";
 
 // import { useState, useEffect } from "react";
@@ -9,11 +7,14 @@
 // import { useQuery, keepPreviousData } from "@tanstack/react-query";
 // import { Toaster } from "react-hot-toast";
 // import Link from "next/link";
-// import { fetchNotes } from "@/lib/api";
+
+// import { notesApi } from "@/lib/api/clientApi"; // Змінено імпорт
+
 // import NoteList from "@/components/NoteList/NoteList";
 // import SearchBox from "@/components/SearchBox/SearchBox";
 // import Pagination from "@/components/Pagination/Pagination";
-// import styles from "@/app/notes/filter/[...slug]/page.module.css";
+// import styles from "@/app/(private routes)/notes/filter/[...slug]/page.module.css";
+
 
 // interface NotesClientProps {
 //   initialPage: number;
@@ -32,11 +33,16 @@
 
 //   const { data, isLoading, isError, isSuccess, error } = useQuery({
 //     queryKey: ["notes", page, debouncedSearchQuery, tagFilter],
-//     queryFn: () => fetchNotes(page, 12, debouncedSearchQuery, tagFilter),
+//     queryFn: () => notesApi.getNotes({ // Використовуємо notesApi.getNotes
+//       page,
+//       search: debouncedSearchQuery,
+//       tag: tagFilter
+//     }),
 //     retry: 2,
 //     placeholderData: keepPreviousData,
 //   });
 
+//   // ... решта коду залишається без змін
 //   useEffect(() => {
 //     if (isSuccess && data?.notes) {
 //       console.log("Data received:", data);
@@ -110,7 +116,8 @@
 
 
 
-// app/notes/filter/[...slug]/Notes.client.tsx
+//  app/(private routes)/notes/filter/[...slug]/Notes.client.tsx
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -119,13 +126,12 @@ import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { Toaster } from "react-hot-toast";
 import Link from "next/link";
 
-import { clientApi } from "@/lib/api/clientApi"; // Змінено імпорт
-
+import { notesApi } from "@/lib/api/clientApi";
 
 import NoteList from "@/components/NoteList/NoteList";
 import SearchBox from "@/components/SearchBox/SearchBox";
 import Pagination from "@/components/Pagination/Pagination";
-import styles from "@/app/notes/filter/[...slug]/page.module.css";
+import styles from "@/app/(private routes)/notes/filter/[...slug]/page.module.css";
 
 interface NotesClientProps {
   initialPage: number;
@@ -144,12 +150,16 @@ export default function NotesClient({
 
   const { data, isLoading, isError, isSuccess, error } = useQuery({
     queryKey: ["notes", page, debouncedSearchQuery, tagFilter],
-    queryFn: () => clientApi.fetchNotes(page, 12, debouncedSearchQuery, tagFilter), // Використовуємо clientApi.fetchNotes
+    queryFn: () => notesApi.fetchNotes( // Змінено getNotes на fetchNotes
+      page,
+      12, // perPage
+      debouncedSearchQuery,
+      tagFilter
+    ),
     retry: 2,
     placeholderData: keepPreviousData,
   });
 
-  // ... решта коду залишається без змін
   useEffect(() => {
     if (isSuccess && data?.notes) {
       console.log("Data received:", data);
