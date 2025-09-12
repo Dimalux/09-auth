@@ -1,7 +1,6 @@
 // components/NoteList/NoteList.tsx
 
-
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { Note } from "@/types/note";
 import styles from "@/components/NoteList/NoteList.module.css";
@@ -22,33 +21,34 @@ export default function NoteList({ notes }: NoteListProps) {
 
     if (window.confirm("Ви впевнені, що хочете видалити цю нотатку?")) {
       // Додаємо ID до множини видалення (для disabled стану)
-      setDeletingIds(prev => new Set(prev).add(id));
-      
+      setDeletingIds((prev) => new Set(prev).add(id));
+
       try {
         // Оптимістично оновлюємо UI - видаляємо нотатку
-        queryClient.setQueryData<{ notes: Note[]; totalPages: number }>(["notes"], (old) => {
-          if (!old) return old;
-          return {
-            ...old,
-            notes: old.notes.filter(note => note.id !== id)
-          };
-        });
-        
+        queryClient.setQueryData<{ notes: Note[]; totalPages: number }>(
+          ["notes"],
+          (old) => {
+            if (!old) return old;
+            return {
+              ...old,
+              notes: old.notes.filter((note) => note.id !== id),
+            };
+          }
+        );
+
         // Викликаємо API для фактичного видалення
         await clientApi.deleteNote(id);
-        
+
         // Після успішного видалення інвалідуємо запит для оновлення даних
         queryClient.invalidateQueries({ queryKey: ["notes"] });
-        
       } catch (error) {
         console.error("Помилка при видаленні:", error);
-        
+
         // У разі помилки - інвалідуємо запити для відновлення даних
         queryClient.invalidateQueries({ queryKey: ["notes"] });
-        
       } finally {
         // Видаляємо ID з множини видалення
-        setDeletingIds(prev => {
+        setDeletingIds((prev) => {
           const newSet = new Set(prev);
           newSet.delete(id);
           return newSet;
@@ -69,20 +69,19 @@ export default function NoteList({ notes }: NoteListProps) {
           <div className={styles.footer}>
             <span className={styles.tag}>{note.tag}</span>
             <div className={styles.actions}>
-             
-              <Link 
-                href={`/notes/${note.id}`} 
+              <Link
+                href={`/notes/${note.id}`}
                 className={styles.link}
-                scroll={false} 
+                scroll={false}
               >
                 View details
               </Link>
               <button
                 className={styles.button}
                 onClick={(e) => handleDelete(note.id, e)}
-                disabled={deletingIds.has(note.id)} 
+                disabled={deletingIds.has(note.id)}
               >
-                Delete 
+                Delete
               </button>
             </div>
           </div>
