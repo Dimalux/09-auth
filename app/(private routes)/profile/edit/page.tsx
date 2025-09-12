@@ -1,38 +1,66 @@
 // app/(private routes)/profile/edit/page.tsx
 
 
+
 // 'use client';
 
-// import { useState } from 'react';
+// import { useState, useEffect } from 'react';
 // import { useRouter } from 'next/navigation';
 // import Image from 'next/image';
-// import { User } from '@/types/user';
 // import { usersApi } from '@/lib/api/clientApi';
 // import { useAuthStore } from '@/lib/store/authStore';
 // import css from './EditProfilePage.module.css';
 
 // export default function EditProfilePage() {
-//   const { user, setUser } = useAuthStore();
-//   const [username, setUsername] = useState(user?.username || '');
+//   const { user, isLoading: isAuthLoading } = useAuthStore();
+//   const [username, setUsername] = useState('');
 //   const [isLoading, setIsLoading] = useState(false);
 //   const [error, setError] = useState('');
 //   const router = useRouter();
 
+//   // Ініціалізація username після завантаження даних користувача
+//   useEffect(() => {
+//     if (user) {
+//       setUsername(user.username || '');
+//     }
+//   }, [user]);
+
+//   useEffect(() => {
+//     if (!isAuthLoading && !user) {
+//       router.push('/sign-in');
+//     }
+//   }, [user, isAuthLoading, router]);
+
+//   if (isAuthLoading) {
+//     return (
+//       <main className={css.mainContent}>
+//         <div className={css.profileCard}>
+//           <div className={css.loading}>Loading...</div>
+//         </div>
+//       </main>
+//     );
+//   }
+
 //   if (!user) {
-//     router.push('/sign-in');
 //     return null;
 //   }
 
 //   const handleSubmit = async (e: React.FormEvent) => {
 //     e.preventDefault();
+    
+//     if (!username.trim()) {
+//       setError('Username cannot be empty');
+//       return;
+//     }
+
 //     setIsLoading(true);
 //     setError('');
 
 //     try {
-//       const updatedUser = await usersApi.updateMe({ username });
-//       setUser(updatedUser);
+//       await usersApi.updateMe({ username });
 //       router.push('/profile');
 //     } catch (error: any) {
+//       console.error('Update failed:', error);
 //       setError(error.message || 'Failed to update profile');
 //     } finally {
 //       setIsLoading(false);
@@ -66,6 +94,7 @@
 //               onChange={(e) => setUsername(e.target.value)}
 //               className={css.input}
 //               placeholder="Enter your username"
+//               disabled={isLoading}
 //             />
 //           </div>
 
@@ -100,10 +129,6 @@
 
 // app/(private routes)/profile/edit/page.tsx
 
-
-
-// app/(private routes)/profile/edit/page.tsx
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -112,6 +137,10 @@ import Image from 'next/image';
 import { usersApi } from '@/lib/api/clientApi';
 import { useAuthStore } from '@/lib/store/authStore';
 import css from './EditProfilePage.module.css';
+
+interface UpdateError {
+  message?: string;
+}
 
 export default function EditProfilePage() {
   const { user, isLoading: isAuthLoading } = useAuthStore();
@@ -161,7 +190,8 @@ export default function EditProfilePage() {
     try {
       await usersApi.updateMe({ username });
       router.push('/profile');
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as UpdateError;
       console.error('Update failed:', error);
       setError(error.message || 'Failed to update profile');
     } finally {
