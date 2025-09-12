@@ -1,9 +1,8 @@
 // lib/api/serverApi.ts
 
 
-
 import { cookies } from 'next/headers';
-import { nextServer, ApiError } from './api';
+import { nextServer } from './api';
 import { Note } from '@/types/note';
 import { User } from '@/types/user';
 
@@ -20,6 +19,11 @@ export const serverApi = {
     tag?: string
   ): Promise<NotesResponse> => {
     try {
+      const cookieStore = await cookies();
+      const cookiesString = cookieStore.getAll()
+        .map(cookie => `${cookie.name}=${cookie.value}`)
+        .join('; ');
+
       const params: Record<string, string> = {
         page: page.toString(),
         perPage: perPage.toString(),
@@ -30,63 +34,100 @@ export const serverApi = {
         params.tag = tag;
       }
       
-      const response = await nextServer.get<NotesResponse>('/notes', { params });
+      const response = await nextServer.get<NotesResponse>('/notes', { 
+        params,
+        headers: {
+          Cookie: cookiesString,
+        },
+      });
       return response.data;
-    } catch (error) {
-      console.error('Помилка запиту:', error);
-      throw error;
+    } catch (error: any) {
+      console.error('Помилка запиту до /notes:', {
+        url: error.config?.url,
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message
+      });
+      
+      if (error.response?.status === 401) {
+        throw new Error('Unauthorized');
+      }
+      throw new Error(error.response?.data?.error || error.message || 'Failed to fetch notes');
     }
   },
 
   fetchNoteById: async (id: string): Promise<Note> => {
     try {
-      const response = await nextServer.get<Note>(`/notes/${id}`);
+      const cookieStore = await cookies();
+      const cookiesString = cookieStore.getAll()
+        .map(cookie => `${cookie.name}=${cookie.value}`)
+        .join('; ');
+
+      const response = await nextServer.get<Note>(`/notes/${id}`, {
+        headers: {
+          Cookie: cookiesString,
+        },
+      });
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching note:', error);
-      throw new Error('Failed to fetch note');
+      if (error.response?.status === 401) {
+        throw new Error('Unauthorized');
+      }
+      throw new Error(error.response?.data?.error || error.message || 'Failed to fetch note');
     }
   },
 
   getMe: async (): Promise<User> => {
     try {
       const cookieStore = await cookies();
-      const accessToken = cookieStore.get('accessToken')?.value;
+      const cookiesString = cookieStore.getAll()
+        .map(cookie => `${cookie.name}=${cookie.value}`)
+        .join('; ');
 
       const response = await nextServer.get<User>('/users/me', {
-        headers: accessToken ? {
-          Cookie: `accessToken=${accessToken}`,
-        } : {},
+        headers: {
+          Cookie: cookiesString,
+        },
       });
 
       return response.data;
-    } catch (error: unknown) {
-      const apiError = error as ApiError;
-      throw new Error(apiError.response?.data?.error || apiError.message || 'Failed to fetch user profile');
+    } catch (error: any) {
+      console.error('Failed to fetch user:', error);
+      if (error.response?.status === 401) {
+        throw new Error('Unauthorized');
+      }
+      throw new Error(error.response?.data?.error || error.message || 'Failed to fetch user profile');
     }
   },
 
+  // Alternative method using fetch
   getMeWithFetch: async (): Promise<User> => {
     try {
       const cookieStore = await cookies();
-      const accessToken = cookieStore.get('accessToken')?.value;
+      const cookiesString = cookieStore.getAll()
+        .map(cookie => `${cookie.name}=${cookie.value}`)
+        .join('; ');
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/me`, {
         headers: {
-          'Cookie': accessToken ? `accessToken=${accessToken}` : '',
+          'Cookie': cookiesString,
           'Content-Type': 'application/json',
         },
         credentials: 'include',
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Unauthorized');
+        }
         throw new Error('Failed to fetch user profile');
       }
 
       return response.json();
-    } catch (error: unknown) {
-      const apiError = error as ApiError;
-      throw new Error(apiError.message || 'Failed to fetch user profile');
+    } catch (error: any) {
+      console.error('Failed to fetch user with fetch:', error);
+      throw new Error(error.message || 'Failed to fetch user profile');
     }
   }
 };

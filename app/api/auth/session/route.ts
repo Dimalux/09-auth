@@ -1,9 +1,20 @@
+// app/api/auth/session/route.ts
+
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { api } from "../../api";
 import { parse } from "cookie";
 import { isAxiosError } from "axios";
 import { logErrorResponse } from "../../_utils/utils";
+
+// Допоміжна функція для отримання cookies у вигляді рядка
+async function getCookiesString(): Promise<string> {
+  const cookieStore = await cookies();
+  const cookieArray = cookieStore
+    .getAll()
+    .map((cookie) => `${cookie.name}=${cookie.value}`);
+  return cookieArray.join("; ");
+}
 
 export async function GET() {
   try {
@@ -16,9 +27,10 @@ export async function GET() {
     }
 
     if (refreshToken) {
+      const cookieString = await getCookiesString();
       const apiRes = await api.get("auth/session", {
         headers: {
-          Cookie: cookieStore.toString(),
+          Cookie: cookieString,
         },
       });
 
@@ -32,13 +44,27 @@ export async function GET() {
           const options = {
             expires: parsed.Expires ? new Date(parsed.Expires) : undefined,
             path: parsed.Path,
-            maxAge: Number(parsed["Max-Age"]),
+            maxAge: parsed["Max-Age"] ? Number(parsed["Max-Age"]) : undefined,
+            secure: parsed.Secure === "true",
+            httpOnly: parsed.HttpOnly === "true",
+            sameSite: parsed.SameSite as "lax" | "strict" | "none" | undefined,
           };
 
-          if (parsed.accessToken)
-            cookieStore.set("accessToken", parsed.accessToken, options);
-          if (parsed.refreshToken)
-            cookieStore.set("refreshToken", parsed.refreshToken, options);
+          // Безпечне встановлення cookies
+          if (parsed.accessToken) {
+            cookieStore.set({
+              name: "accessToken",
+              value: parsed.accessToken,
+              ...options,
+            });
+          }
+          if (parsed.refreshToken) {
+            cookieStore.set({
+              name: "refreshToken",
+              value: parsed.refreshToken,
+              ...options,
+            });
+          }
         }
         return NextResponse.json({ success: true }, { status: 200 });
       }
@@ -47,9 +73,23 @@ export async function GET() {
   } catch (error) {
     if (isAxiosError(error)) {
       logErrorResponse(error.response?.data);
-      return NextResponse.json({ success: false }, { status: 200 });
+      // Повертаємо більш інформативну відповідь для debug
+      return NextResponse.json(
+        {
+          success: false,
+          error: error.message,
+          status: error.response?.status,
+        },
+        { status: 200 }
+      );
     }
     logErrorResponse({ message: (error as Error).message });
-    return NextResponse.json({ success: false }, { status: 200 });
+    return NextResponse.json(
+      {
+        success: false,
+        error: (error as Error).message,
+      },
+      { status: 200 }
+    );
   }
 }

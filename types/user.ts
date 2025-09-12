@@ -1,6 +1,5 @@
 // types/user.ts
 
-
 export interface User {
   id: string;
   email: string;
@@ -11,6 +10,7 @@ export interface User {
 
 export interface SignUpData {
   email: string;
+  username: string;
   password: string;
 }
 

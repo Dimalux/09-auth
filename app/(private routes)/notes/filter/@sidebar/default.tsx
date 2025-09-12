@@ -1,49 +1,5 @@
 //  app/(private routes)/notes/filter/@sidebar/default.tsx
 
-
-
-
-// import Link from "next/link";
-// import styles from "./SidebarNotes.module.css";
-
-// const ALL_TAGS = ["Todo", "Work", "Personal", "Meeting", "Shopping"];
-
-// export default function SidebarNotes() {
-//   return (
-//     <div className={styles.sidebar}>
-//       <h3>Filter by Tag</h3>
-//       <ul className={styles.menuList}>
-//         <li className={styles.menuItem}>
-//           <Link href="/notes/filter/All" className={styles.menuLink}>
-//             All Notes
-//           </Link>
-//         </li>
-
-//         {ALL_TAGS.map((tag) => (
-//           <li key={tag} className={styles.menuItem}>
-//             <Link href={`/notes/filter/${tag}`} className={styles.menuLink}>
-//               {tag}
-//             </Link>
-//           </li>
-//         ))}
-
-//         <li className={styles.menuItem}>
-//           <Link
-//             href="/notes/action/create"
-//             className={`${styles.menuLink} ${styles.createLink}`}
-//           >
-//             Create note +
-//           </Link>
-//         </li>
-//       </ul>
-//     </div>
-//   );
-// }
-
-
-
-
-// app/(private-routes)/notes/filter/@sidebar/default.tsx
 "use client";
 
 import Link from "next/link";
@@ -61,8 +17,8 @@ export default function SidebarNotes() {
       <h3>Filter by Tag</h3>
       <ul className={styles.menuList}>
         <li className={styles.menuItem}>
-          <Link 
-            href="/notes/filter/All" 
+          <Link
+            href="/notes/filter/All"
             className={`${styles.menuLink} ${currentTag === "All" ? styles.active : ""}`}
           >
             All Notes
@@ -71,7 +27,7 @@ export default function SidebarNotes() {
 
         {ALL_TAGS.map((tag) => (
           <li key={tag} className={styles.menuItem}>
-            <Link 
+            <Link
               href={`/notes/filter/${tag}`}
               className={`${styles.menuLink} ${currentTag === tag ? styles.active : ""}`}
             >

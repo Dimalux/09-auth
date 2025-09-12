@@ -10,7 +10,7 @@ import { signOut } from '@/lib/api/clientApi';
 import css from "./AuthNavigation.module.css";
 
 const AuthNavigation = () => {
-  const { user, isAuthenticated, clearAuth } = useAuthStore();
+  const { user, isAuthenticated, clearAuth, isLoading } = useAuthStore();
   const router = useRouter();
 
   const handleLogout = async () => {
@@ -19,7 +19,6 @@ const AuthNavigation = () => {
       clearAuth();
       router.push('/sign-in');
     } catch (error: any) {
-      // Якщо це 404, все одно продовжуємо з очищенням
       if (error.message.includes('404') || error.message.includes('Logout endpoint')) {
         clearAuth();
         router.push('/sign-in');
@@ -29,6 +28,10 @@ const AuthNavigation = () => {
       }
     }
   };
+
+  if (isLoading) {
+    return <li className={css.navigationItem}>Loading...</li>;
+  }
 
   return (
     <>

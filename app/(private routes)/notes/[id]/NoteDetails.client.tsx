@@ -1,10 +1,11 @@
 // app/notes/[id]/NoteDetails.client.tsx
+
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
 import { notesApi } from "@/lib/api/clientApi";
 import { Note } from "@/types/note";
-import styles from "./NoteDetails.client.module.css";
+import styles from "@/app/(private routes)/notes/[id]/NoteDetails.client.module.css";
 
 interface NoteDetailsClientProps {
   note: Note;
@@ -17,7 +18,7 @@ export default function NoteDetailsClient({ note }: NoteDetailsClientProps) {
     error,
   } = useQuery({
     queryKey: ["note", note.id],
-    queryFn: () => notesApi.getNote(note.id), // Виправити тут
+    queryFn: () => notesApi.fetchNoteById(note.id), // Виправлено: використовуємо fetchNoteById замість getNote
     initialData: note, // Використовуємо initialData з серверного рендерингу
   });
 
@@ -26,7 +27,9 @@ export default function NoteDetailsClient({ note }: NoteDetailsClientProps) {
   }
 
   if (error) {
-    return <div className={styles.error}>Error: {(error as Error).message}</div>;
+    return (
+      <div className={styles.error}>Error: {(error as Error).message}</div>
+    );
   }
 
   if (!noteData) {

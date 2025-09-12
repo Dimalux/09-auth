@@ -6,7 +6,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { fetchNoteById } from "@/lib/api/clientApi";
-import NoteDetailsClient from "@/app/notes/[id]/NoteDetails.client";
+import NoteDetailsClient from "@/app/(private routes)/notes/[id]/NoteDetails.client";
 import Modal from "@/components/Modal/Modal";
 
 interface NotePreviewProps {
