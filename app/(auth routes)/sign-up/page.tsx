@@ -134,6 +134,10 @@
 
 // export default SignUp;
 
+
+
+
+
 // app/(auth routes)/sign-up/page.tsx
 
 "use client";
@@ -164,9 +168,9 @@ const SignUp = () => {
     setError("");
 
     try {
-      const email = formData.get("email") as string;
-      const username = formData.get("username") as string;
-      const password = formData.get("password") as string;
+      const email = formData.get("email") as string | null;
+      const username = formData.get("username") as string | null;
+      const password = formData.get("password") as string | null;
 
       if (!email || !username || !password) {
         setError("Будь ласка, заповніть всі поля");
