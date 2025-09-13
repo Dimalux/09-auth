@@ -1,5 +1,6 @@
 // app/(private routes)/profile/edit/page.tsx
 
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -80,7 +81,7 @@ export default function EditProfilePage() {
         <h1 className={css.formTitle}>Edit Profile</h1>
 
         <Image
-          src="/default-avatar.png"
+          src={user.avatar || "/default-avatar.png"} // Використовуємо аватарку з user
           alt="User Avatar"
           width={120}
           height={120}

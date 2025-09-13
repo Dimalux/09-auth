@@ -1,16 +1,14 @@
 // types/user.ts
 
+
 export interface User {
-  id: string;
   email: string;
-  username?: string;
-  createdAt: string;
-  updatedAt: string;
+  username: string;
+  avatar: string;
 }
 
 export interface SignUpData {
   email: string;
-  username: string;
   password: string;
 }
 

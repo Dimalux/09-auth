@@ -1,6 +1,5 @@
 // app/@modal/(.)notes/[id]/NotePreview.client.tsx
 
-
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
@@ -15,7 +14,7 @@ interface NotePreviewProps {
 
 export default function NotePreview({ noteId }: NotePreviewProps) {
   const router = useRouter();
-  
+
   const {
     data: note,
     isLoading,
@@ -24,11 +23,11 @@ export default function NotePreview({ noteId }: NotePreviewProps) {
   } = useQuery({
     queryKey: ["note", noteId],
     queryFn: () => fetchNoteById(noteId),
-    refetchOnMount: false, 
+    refetchOnMount: false,
   });
 
   const handleClose = () => {
-    router.back(); 
+    router.back();
   };
 
   if (isLoading) {
@@ -66,7 +65,7 @@ export default function NotePreview({ noteId }: NotePreviewProps) {
 
   return (
     <Modal onClose={handleClose}>
-      <NoteDetailsClient note={note} />
+      <NoteDetailsClient note={note} noteId={noteId} />
     </Modal>
   );
 }

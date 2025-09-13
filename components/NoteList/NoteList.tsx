@@ -1,11 +1,11 @@
 // components/NoteList/NoteList.tsx
 
-import { useQueryClient } from "@tanstack/react-query";
+
+import { useQueryClient, useMutation } from "@tanstack/react-query";
 import Link from "next/link";
 import { Note } from "@/types/note";
 import styles from "@/components/NoteList/NoteList.module.css";
 import { clientApi } from "@/lib/api/clientApi";
-import { useState } from "react";
 
 interface NoteListProps {
   notes: Note[];
@@ -13,47 +13,49 @@ interface NoteListProps {
 
 export default function NoteList({ notes }: NoteListProps) {
   const queryClient = useQueryClient();
-  const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
+
+  const deleteMutation = useMutation({
+    mutationFn: clientApi.deleteNote,
+    onMutate: async (id: string) => {
+      // Скасовуємо поточні запити для уникнення конфліктів
+      await queryClient.cancelQueries({ queryKey: ["notes"] });
+
+      // Зберігаємо попередні дані для відкату
+      const previousNotes = queryClient.getQueryData<{ notes: Note[]; totalPages: number }>(["notes"]);
+
+      // Оптимістично оновлюємо UI
+      if (previousNotes) {
+        queryClient.setQueryData(["notes"], {
+          ...previousNotes,
+          notes: previousNotes.notes.filter((note) => note.id !== id),
+        });
+      }
+
+      return { previousNotes };
+    },
+    onError: (error, id, context) => {
+      console.error("Помилка при видаленні:", error);
+      
+      // Відкатуємо зміни у разі помилки
+      if (context?.previousNotes) {
+        queryClient.setQueryData(["notes"], context.previousNotes);
+      }
+      
+      // Інвалідуємо запити для оновлення даних
+      queryClient.invalidateQueries({ queryKey: ["notes"] });
+    },
+    onSuccess: () => {
+      // Інвалідуємо запити для оновлення даних після успішного видалення
+      queryClient.invalidateQueries({ queryKey: ["notes"] });
+    },
+  });
 
   const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
     if (window.confirm("Ви впевнені, що хочете видалити цю нотатку?")) {
-      // Додаємо ID до множини видалення (для disabled стану)
-      setDeletingIds((prev) => new Set(prev).add(id));
-
-      try {
-        // Оптимістично оновлюємо UI - видаляємо нотатку
-        queryClient.setQueryData<{ notes: Note[]; totalPages: number }>(
-          ["notes"],
-          (old) => {
-            if (!old) return old;
-            return {
-              ...old,
-              notes: old.notes.filter((note) => note.id !== id),
-            };
-          }
-        );
-
-        // Викликаємо API для фактичного видалення
-        await clientApi.deleteNote(id);
-
-        // Після успішного видалення інвалідуємо запит для оновлення даних
-        queryClient.invalidateQueries({ queryKey: ["notes"] });
-      } catch (error) {
-        console.error("Помилка при видаленні:", error);
-
-        // У разі помилки - інвалідуємо запити для відновлення даних
-        queryClient.invalidateQueries({ queryKey: ["notes"] });
-      } finally {
-        // Видаляємо ID з множини видалення
-        setDeletingIds((prev) => {
-          const newSet = new Set(prev);
-          newSet.delete(id);
-          return newSet;
-        });
-      }
+      deleteMutation.mutate(id);
     }
   };
 
@@ -79,7 +81,7 @@ export default function NoteList({ notes }: NoteListProps) {
               <button
                 className={styles.button}
                 onClick={(e) => handleDelete(note.id, e)}
-                disabled={deletingIds.has(note.id)}
+                disabled={deleteMutation.isPending && deleteMutation.variables === note.id}
               >
                 Delete
               </button>

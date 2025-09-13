@@ -1,11 +1,11 @@
-// app/notes/[id]/page.tsx
+// app/(private routes)/notes/[id]/page.tsx
 
 import {
   HydrationBoundary,
   dehydrate,
   QueryClient,
 } from "@tanstack/react-query";
-import { notesApi } from "@/lib/api/clientApi";
+import { fetchNoteById } from "@/lib/api/serverApi"; // Використовуємо серверний API
 import NoteDetailsClient from "./NoteDetails.client";
 import { Metadata } from "next";
 
@@ -15,9 +15,7 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-
-  // Змініть getNote на fetchNoteById
-  const note = await notesApi.fetchNoteById(id);
+  const note = await fetchNoteById(id);
 
   return {
     title: `Note: ${note.title} | NoteHub`,
@@ -44,15 +42,18 @@ export default async function NoteDetailPage({ params }: Props) {
   const { id } = await params;
   const queryClient = new QueryClient();
 
-  // Попереднє завантаження даних - використовуємо метод fetchNoteById
-  const note = await queryClient.fetchQuery({
+  // Отримуємо нотатку серверним методом
+  const note = await fetchNoteById(id);
+
+  // Попередньо завантажуємо дані
+  await queryClient.prefetchQuery({
     queryKey: ["note", id],
-    queryFn: () => notesApi.fetchNoteById(id), // ✅ Правильний виклик
+    queryFn: () => fetchNoteById(id),
   });
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <NoteDetailsClient note={note} />
+      <NoteDetailsClient note={note} noteId={id} />
     </HydrationBoundary>
   );
 }

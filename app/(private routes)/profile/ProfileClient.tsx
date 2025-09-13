@@ -6,6 +6,8 @@
 import { User } from '@/types/user';
 import { useAuthStore } from '@/lib/store/authStore';
 import css from './ProfilePage.module.css';
+import Link from 'next/link';
+import Image from 'next/image'; // Додаємо імпорт Image
 
 interface ProfileClientProps {
   user: User | null;
@@ -39,13 +41,13 @@ export default function ProfileClient({ user }: ProfileClientProps) {
       <div className={css.profileCard}>
         <div className={css.header}>
           <h1 className={css.formTitle}>Profile Page</h1>
-          <a href="/profile/edit" className={css.editProfileButton}>
+          <Link href="/profile/edit" className={css.editProfileButton}>
             Edit Profile
-          </a>
+          </Link>
         </div>
         <div className={css.avatarWrapper}>
-          <img
-            src="/default-avatar.png"
+          <Image
+            src={user.avatar || "/default-avatar.png"} // Використовуємо аватарку з user
             alt="User Avatar"
             width={120}
             height={120}
@@ -53,9 +55,8 @@ export default function ProfileClient({ user }: ProfileClientProps) {
           />
         </div>
         <div className={css.profileInfo}>
-          {/* <p><strong>Username:</strong> {user.username || 'Not set'}</p> */}
+          <p><strong>Username:</strong> {user.username || 'Not set'}</p>
           <p><strong>Email:</strong> {user.email}</p>
-          <p><strong>Member since:</strong> {new Date(user.createdAt).toLocaleDateString()}</p>
         </div>
       </div>
     </main>

@@ -1,13 +1,21 @@
 // lib/api/serverApi.ts
 
+
 import { cookies } from "next/headers";
 import { nextServer } from "./api";
 import { Note } from "@/types/note";
 import { User } from "@/types/user";
+import { AxiosResponse } from "axios";
 
 export interface NotesResponse {
   notes: Note[];
   totalPages: number;
+}
+
+export interface SessionResponse {
+  user: User;
+  valid: boolean;
+  expires?: string;
 }
 
 interface ApiError extends Error {
@@ -130,6 +138,42 @@ export const serverApi = {
     }
   },
 
+  // функція для перевірки сесії  check session
+  checkSession: async (): Promise<AxiosResponse<SessionResponse>> => {
+    try {
+      const cookieStore = await cookies();
+      const cookiesString = cookieStore
+        .getAll()
+        .map((cookie) => `${cookie.name}=${cookie.value}`)
+        .join("; ");
+
+      const response = await nextServer.get<SessionResponse>("/auth/session", {
+        headers: {
+          Cookie: cookiesString,
+        },
+      });
+
+      return response;
+    } catch (error) {
+      const apiError = error as ApiError;
+      console.error("Failed to check session:", {
+        url: apiError.config?.url,
+        status: apiError.response?.status,
+        data: apiError.response?.data,
+        message: apiError.message,
+      });
+
+      if (apiError.response?.status === 401) {
+        throw new Error("Unauthorized");
+      }
+      throw new Error(
+        apiError.response?.data?.error ||
+          apiError.message ||
+          "Failed to check session"
+      );
+    }
+  },
+
   // Alternative method using fetch
   getMeWithFetch: async (): Promise<User> => {
     try {
@@ -166,4 +210,4 @@ export const serverApi = {
   },
 };
 
-export const { fetchNotes, fetchNoteById, getMe, getMeWithFetch } = serverApi;
+export const { fetchNotes, fetchNoteById, getMe, getMeWithFetch, checkSession } = serverApi;
