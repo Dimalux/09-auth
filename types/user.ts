@@ -7,10 +7,14 @@ export interface User {
   avatar: string;
 }
 
+
 export interface SignUpData {
   email: string;
   password: string;
+  username: string; 
 }
+
+
 
 export interface SignInData {
   email: string;
