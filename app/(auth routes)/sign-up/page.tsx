@@ -29,10 +29,9 @@ const SignUp = () => {
 
     try {
       const email = formData.get("email") as string | null;
-      const username = formData.get("username") as string | null;
       const password = formData.get("password") as string | null;
 
-      if (!email || !username || !password) {
+      if (!email || !password) {
         setError("Будь ласка, заповніть всі поля");
         setIsLoading(false);
         return;
@@ -44,13 +43,8 @@ const SignUp = () => {
         return;
       }
 
-      if (username.length < 3) {
-        setError("Ім'я користувача повинно містити щонайменше 3 символи");
-        setIsLoading(false);
-        return;
-      }
-
-      const user = await signUp({ email, username, password });
+      // Видаляємо username з об'єкта, оскільки SignUpData його не містить
+      const user = await signUp({ email, password });
       setUser(user);
       router.push("/profile");
     } catch (err) {
@@ -86,19 +80,6 @@ const SignUp = () => {
             className={css.input}
             required
             placeholder="Введіть ваш email"
-          />
-        </div>
-
-        <div className={css.formGroup}>
-          <label htmlFor="username">Username</label>
-          <input
-            id="username"
-            type="text"
-            name="username"
-            className={css.input}
-            required
-            placeholder="Введіть ім'я користувача (мінімум 3 символи)"
-            minLength={3}
           />
         </div>
 
